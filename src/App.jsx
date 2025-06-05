@@ -1,9 +1,16 @@
-function App() {
-  return (
-    <div className="h-screen bg-purple-800 text-white flex items-center justify-center">
-      <h1 className="text-4xl font-bold">🎲 Random Life com Tailwind!</h1>
-    </div>
-  )
-}
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Filme from "./pages/Filme";
+// import outras páginas...
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/filme" element={<Filme />} />
+        {/* outras rotas aqui */}
+      </Routes>
+    </BrowserRouter>
+  );
+}
