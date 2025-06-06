@@ -1,4 +1,3 @@
-// movies.js
 require('dotenv').config();
 const express = require('express');
 const fetch = require('node-fetch');
@@ -8,11 +7,17 @@ const router = express.Router();
 router.get('/random', async (req, res) => {
   try {
     const apiKey = process.env.TMDB_API_KEY;
+    console.log("API KEY carregada:", apiKey);
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Chave da API TMDb não configurada' });
+    }
 
     // 1. Buscar lista de filmes populares
     const popularUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=pt-BR&page=1`;
     const popularResponse = await fetch(popularUrl);
     if (!popularResponse.ok) {
+      console.error('Erro na resposta da API popular:', popularResponse.status, popularResponse.statusText);
       return res.status(popularResponse.status).json({ error: 'Erro ao consultar lista de filmes' });
     }
     const popularData = await popularResponse.json();
@@ -41,6 +46,7 @@ router.get('/random', async (req, res) => {
     const detailsUrl = `https://api.themoviedb.org/3/movie/${randomMovie.id}?api_key=${apiKey}&language=pt-BR`;
     const detailsResponse = await fetch(detailsUrl);
     if (!detailsResponse.ok) {
+      console.error('Erro na resposta da API detalhes:', detailsResponse.status, detailsResponse.statusText);
       return res.status(detailsResponse.status).json({ error: 'Erro ao buscar detalhes do filme' });
     }
 
