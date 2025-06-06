@@ -1,79 +1,100 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import pageFlipSound from "/sounds/page-flip.mp3"; // Ajuste o caminho se precisar
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { useNavigate } from "react-router-dom";
 
-
-const mockMusic = [
+const albunsMock = [
   {
-    title: "Bohemian Rhapsody",
-    artist: "Queen",
-    genre: "Rock",
-    cover: "https://upload.wikimedia.org/wikipedia/en/9/9f/Bohemian_Rhapsody.png",
+    nome: "Abbey Road",
+    artista: "The Beatles",
+    ano: 1969,
+    genero: "Rock",
+    imagem:
+      "https://upload.wikimedia.org/wikipedia/en/4/42/Beatles_-_Abbey_Road.jpg",
+    descricao:
+      "Último álbum gravado pelos Beatles, conhecido pela icônica capa da faixa de pedestres.",
   },
   {
-    title: "Blinding Lights",
-    artist: "The Weeknd",
-    genre: "Pop",
-    cover: "https://upload.wikimedia.org/wikipedia/en/e/e6/The_Weeknd_-_Blinding_Lights.png",
+    nome: "Thriller",
+    artista: "Michael Jackson",
+    ano: 1982,
+    genero: "Pop",
+    imagem:
+      "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png",
+    descricao:
+      "O álbum mais vendido da história, com hits como 'Beat It' e 'Billie Jean'.",
   },
   {
-    title: "Smells Like Teen Spirit",
-    artist: "Nirvana",
-    genre: "Grunge",
-    cover: "https://upload.wikimedia.org/wikipedia/en/b/b7/NirvanaSmellsLikeTeenSpirit.jpg",
+    nome: "Kind of Blue",
+    artista: "Miles Davis",
+    ano: 1959,
+    genero: "Jazz",
+    imagem:
+      "https://upload.wikimedia.org/wikipedia/en/9/9c/MilesDavisKindofBlue.jpg",
+    descricao:
+      "Álbum clássico de jazz, um marco na história do gênero e influência para muitos músicos.",
   },
 ];
 
-export default function Musica() {
-  const [index, setIndex] = useState(0);
-  const music = mockMusic[index];
-  const audio = new Audio(pageFlipSound);
+const Musica = () => {
+  const [album, setAlbum] = useState(albunsMock[0]);
+  const navigate = useNavigate();
 
-  const nextMusic = () => {
-    audio.play();
-    setIndex((prev) => (prev + 1) % mockMusic.length);
+  const trocarAlbum = () => {
+    const aleatorio = albunsMock[Math.floor(Math.random() * albunsMock.length)];
+    setAlbum(aleatorio);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center
-      bg-gradient-to-br from-green-900 via-emerald-800 to-green-950
-      bg-[length:200%_200%] animate-gradient-x p-6"
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6"
+      style={{
+        background: "linear-gradient(135deg, #1B5E20 0%, #4CAF50 100%)",
+      }}
     >
-      <div
-        className="relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden
-          bg-gradient-to-br from-green-100/90 to-green-200/80 backdrop-blur-sm"
+      {/* Botão voltar */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 text-white hover:text-yellow-300 transition-colors duration-300"
+        aria-label="Voltar"
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={music.title}
-            initial={{ rotateY: 90, opacity: 0 }}
-            animate={{ rotateY: 0, opacity: 1 }}
-            exit={{ rotateY: -90, opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="p-8 flex flex-col items-center text-center"
-          >
-            <img
-              src={music.cover}
-              alt={music.title}
-              className="w-56 h-56 object-cover rounded-xl shadow-lg mb-6"
-            />
-            <h2 className="text-4xl font-bold font-[Poppins] text-green-900 drop-shadow-md">
-              {music.title}
-            </h2>
-            <p className="text-2xl text-green-800 mt-1">{music.artist}</p>
-            <span className="text-lg italic text-green-700 mt-2">{music.genre}</span>
-          </motion.div>
-        </AnimatePresence>
+        <ArrowLeftIcon className="h-10 w-10" />
+      </button>
 
-        <button
-          onClick={nextMusic}
-          className="absolute bottom-6 right-6 bg-green-700 text-green-100
-            font-semibold px-5 py-3 rounded-xl shadow-md hover:bg-green-600
-            active:scale-95 transition-transform duration-150"
-        >
-          Outra música
-        </button>
-      </div>
+      <motion.div
+        key={album.nome}
+        initial={{ opacity: 0, rotateY: -90 }}
+        animate={{ opacity: 1, rotateY: 0 }}
+        exit={{ opacity: 0, rotateY: 90 }}
+        transition={{ duration: 0.8 }}
+        className="max-w-4xl w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden text-gray-900"
+      >
+        {/* Imagem */}
+        <img
+          src={album.imagem}
+          alt={album.nome}
+          className="w-full md:w-1/3 object-cover"
+          style={{ minHeight: "320px" }}
+        />
+
+        {/* Infos */}
+        <div className="p-8 flex flex-col justify-center md:w-2/3">
+          <h2 className="text-4xl font-serif font-semibold mb-2">{album.nome}</h2>
+          <p className="text-lg italic mb-2 text-gray-700">Artista: {album.artista}</p>
+          <p className="text-base font-light mb-2">Ano: {album.ano}</p>
+          <p className="text-base font-light mb-4">Gênero: {album.genero}</p>
+          <p className="text-base font-light leading-relaxed">{album.descricao}</p>
+        </div>
+      </motion.div>
+
+      <button
+        onClick={trocarAlbum}
+        className="mt-8 bg-yellow-800 hover:bg-yellow-900 text-white py-3 px-8 rounded-2xl shadow-lg text-lg font-semibold transition-colors duration-300"
+      >
+        Tentar outro álbum
+      </button>
     </div>
   );
-}
+};
+
+export default Musica;

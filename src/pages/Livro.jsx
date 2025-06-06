@@ -1,89 +1,147 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
+const termosBusca = [
+  "subject:literature+classics",
+  "subject:fiction",
+  "Machado de Assis",
+  "Jane Austen",
+  "Victor Hugo",
+  "Dostoiévski",
+  "Tolstói",
+  "George Orwell",
+  "Franz Kafka",
+  "Stephen King",
+  "Agatha Christie",
+  "J.K. Rowling",
+  "Gabriel García Márquez",
+  "Haruki Murakami",
+  "RL Stine",
+  "Neil Gaiman",
+  "Ray Bradbury",
+  "H.G. Wells",
+  "Isaac Asimov",
+  "Arthur C. Clarke",
+];
 
 const Livro = () => {
   const [livro, setLivro] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
-
-  const buscarLivroAleatorio = async () => {
+  const buscarLivro = async () => {
     setLoading(true);
-    const termos = ["ficção", "aventura", "romance", "história", "tecnologia", "fantasia", "biografia"];
-    const termoAleatorio = termos[Math.floor(Math.random() * termos.length)];
+    setLivro(null);
 
     try {
-      const response = await axios.get(
-        `https://www.googleapis.com/books/v1/volumes?q=${termoAleatorio}&printType=books&langRestrict=pt&maxResults=20&key=${apiKey}`
+      const termoAleatorio =
+        termosBusca[Math.floor(Math.random() * termosBusca.length)];
+
+      const resposta = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+          termoAleatorio
+        )}&printType=books&maxResults=10&key=${import.meta.env.VITE_GOOGLE_BOOKS_API_KEY}`
       );
 
-      const livrosFiltrados = response.data.items.filter(item => {
-        const info = item.volumeInfo;
-        const descricaoEmPortugues = info.description && /[à-úÀ-Ú]/.test(info.description);
+      const data = await resposta.json();
 
-        return (
-          info.title &&
-          info.authors &&
-          info.publishedDate &&
-          info.categories &&
-          info.imageLinks?.thumbnail &&
-          descricaoEmPortugues
-        );
-      });
+      if (data.items && data.items.length > 0) {
+        const candidatos = data.items
+          .map((item) => item.volumeInfo)
+          .filter(
+            (info) =>
+              info.title &&
+              info.authors &&
+              info.imageLinks?.thumbnail &&
+              info.description
+          );
 
-      if (livrosFiltrados.length > 0) {
-        const aleatorio = livrosFiltrados[Math.floor(Math.random() * livrosFiltrados.length)];
-        setLivro(aleatorio);
+        if (candidatos.length > 0) {
+          const escolhido =
+            candidatos[Math.floor(Math.random() * candidatos.length)];
+          setLivro(escolhido);
+        } else {
+          setLivro(null);
+        }
       } else {
         setLivro(null);
       }
     } catch (error) {
       console.error("Erro ao buscar livro:", error);
-    } finally {
-      setLoading(false);
+      setLivro(null);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
-    buscarLivroAleatorio();
+    buscarLivro();
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-500 text-black relative">
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6"
+      style={{
+        background: "linear-gradient(135deg, #FFD54F 0%, #FFB300 100%)",
+      }}
+    >
       <button
-        className="absolute top-4 left-4 text-black bg-yellow-100 p-2 rounded-full shadow-md hover:bg-yellow-200 transition"
         onClick={() => navigate("/")}
+        className="absolute top-6 left-6 text-gray-900 hover:text-yellow-900 transition-colors duration-300"
+        aria-label="Voltar"
       >
-        ⬅
+        <ArrowLeftIcon className="h-10 w-10" />
       </button>
 
       {loading ? (
-        <p className="text-xl font-bold">Carregando livro...</p>
+        <p className="text-gray-900 text-xl select-none">Carregando livro...</p>
       ) : livro ? (
-        <div className="bg-yellow-100/70 p-6 rounded-2xl shadow-xl max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold mb-4">{livro.volumeInfo.title}</h1>
+        <motion.div
+          key={livro.title}
+          initial={{ opacity: 0, rotateY: -90 }}
+          animate={{ opacity: 1, rotateY: 0 }}
+          exit={{ opacity: 0, rotateY: 90 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border-4 border-yellow-700"
+        >
           <img
-            src={livro.volumeInfo.imageLinks.thumbnail}
-            alt={livro.volumeInfo.title}
-            className="mx-auto mb-4 rounded shadow-lg"
+            src={livro.imageLinks.thumbnail}
+            alt={livro.title}
+            className="w-full md:w-1/3 object-cover"
+            style={{ minHeight: "320px" }}
           />
-          <p className="mb-1"><strong>Autor:</strong> {livro.volumeInfo.authors.join(", ")}</p>
-          <p className="mb-1"><strong>Ano:</strong> {livro.volumeInfo.publishedDate}</p>
-          <p className="mb-1"><strong>Gênero:</strong> {livro.volumeInfo.categories?.join(", ")}</p>
-          <p className="text-sm text-justify">{livro.volumeInfo.description}</p>
 
-          <button
-            onClick={buscarLivroAleatorio}
-            className="mt-6 px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition shadow-md"
-          >
-            Novo Livro
-          </button>
-        </div>
+          <div className="p-8 flex flex-col justify-between md:w-2/3 text-gray-900">
+            <div>
+              <h2 className="text-4xl font-serif font-semibold mb-4">
+                {livro.title}
+              </h2>
+              <p className="text-lg italic mb-8 text-gray-700">
+                Autor: {livro.authors.join(", ")}
+              </p>
+              <p
+                className="text-base font-semibold leading-relaxed max-h-72 overflow-y-auto pr-2 drop-shadow-md"
+                style={{ scrollbarWidth: "thin" }}
+              >
+                {livro.description}
+              </p>
+            </div>
+          </div>
+        </motion.div>
       ) : (
-        <p className="text-xl font-semibold">Nenhum livro encontrado. Tente novamente.</p>
+        <p className="text-gray-900 text-lg select-none">
+          Nenhum livro encontrado.
+        </p>
       )}
+
+      <button
+        onClick={buscarLivro}
+        className="mt-8 bg-yellow-800 hover:bg-yellow-900 text-white py-3 px-8 rounded-2xl shadow-lg text-lg font-semibold transition-colors duration-300"
+      >
+        Tentar outro livro
+      </button>
     </div>
   );
 };
