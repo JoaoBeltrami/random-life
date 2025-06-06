@@ -31,11 +31,11 @@ export default function Home() {
           Ouvir
         </button>
         <button
-          onClick={() => navigate("/jogo")}
+          onClick={() => navigate("/livro")}
           className="bg-white text-purple-800 text-sm sm:text-base md:text-2xl font-semibold font-[Poppins] py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-10 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-transform duration-150 w-28 sm:w-32 md:w-48 text-center hover:border hover:border-black"
         >
-          <span className="block text-2xl mb-1">🎮</span>
-          Jogar
+          <span className="block text-2xl mb-1">📕</span>
+          Ler
         </button>
       </div>
     </div>
