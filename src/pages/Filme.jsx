@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { fetchRandomMovies, fetchMovieDetails } from "../services/tmdb";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -15,10 +14,12 @@ export default function Filme() {
 
   async function getRandomMovie() {
     try {
-      const movies = await fetchRandomMovies();
-      const randomIndex = Math.floor(Math.random() * movies.length);
-      const movieDetails = await fetchMovieDetails(movies[randomIndex].id);
-      setMovie(movieDetails);
+      const response = await fetch("http://localhost:4000/api/movies/random");
+      if (!response.ok) {
+        throw new Error("Erro ao buscar filme do backend");
+      }
+      const movie = await response.json();
+      setMovie(movie);
     } catch (error) {
       console.error("Erro ao buscar filme:", error);
     }
@@ -83,7 +84,7 @@ export default function Filme() {
                 </h2>
                 <p className="text-lg text-gray-300 mb-1">
                   <span className="text-blue-400 font-semibold">
-                    ⭐ {movie.vote_average.toFixed(1)}
+                    ⭐ {movie.vote_average?.toFixed(1)}
                   </span>{" "}
                   • 🎬 {movie.release_date?.split("-")[0]} • 🕒{" "}
                   {movie.runtime} min
