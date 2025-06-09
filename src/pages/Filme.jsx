@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://random-life-backend.onrender.com";
-
 export default function Filme() {
   const [movie, setMovie] = useState(null);
   const [clickCount, setClickCount] = useState(0);
@@ -16,14 +14,16 @@ export default function Filme() {
 
   async function getRandomMovie() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/movies/random`);
+      const response = await fetch("https://random-life-backend.onrender.com/api/movies/random");
       if (!response.ok) {
         throw new Error("Erro ao buscar filme do backend");
       }
       const movie = await response.json();
+      console.log("Filme recebido:", movie);
       setMovie(movie);
     } catch (error) {
       console.error("Erro ao buscar filme:", error);
+      setMovie(null);
     }
   }
 
@@ -32,7 +32,8 @@ export default function Filme() {
     getRandomMovie();
   };
 
-  const retryMessage = clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
+  const retryMessage =
+    clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
 
   return (
     <div
@@ -42,6 +43,7 @@ export default function Filme() {
         fontFamily: "'Poppins', sans-serif",
       }}
     >
+      {/* Botão de voltar */}
       <button
         onClick={() => navigate("/")}
         className="absolute top-4 left-4 text-white hover:text-zinc-300 transition-colors"
@@ -59,6 +61,7 @@ export default function Filme() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="flex flex-col md:flex-row bg-zinc-900/90 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-6xl w-full border border-zinc-700"
           >
+            {/* Imagem */}
             <motion.img
               src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
               alt={movie.title}
@@ -69,6 +72,7 @@ export default function Filme() {
               transition={{ duration: 0.4 }}
             />
 
+            {/* Texto */}
             <motion.div
               className="p-8 md:w-1/2 flex flex-col justify-between gap-4 text-white"
               initial={{ x: 50, opacity: 0 }}
@@ -77,12 +81,15 @@ export default function Filme() {
               transition={{ duration: 0.4 }}
             >
               <div>
-                <h2 className="text-3xl font-bold mb-3 leading-snug">{movie.title}</h2>
+                <h2 className="text-3xl font-bold mb-3 leading-snug">
+                  {movie.title}
+                </h2>
                 <p className="text-lg text-gray-300 mb-1">
                   <span className="text-blue-400 font-semibold">
                     ⭐ {movie.vote_average?.toFixed(1)}
                   </span>{" "}
-                  • 🎬 {movie.release_date?.split("-")[0]} • 🕒 {movie.runtime} min
+                  • 🎬 {movie.release_date?.split("-")[0]} • 🕒{" "}
+                  {movie.runtime} min
                 </p>
                 <p className="text-md text-gray-300 font-semibold italic mb-4">
                   {movie.genres?.map((g) => g.name).join(", ")}
