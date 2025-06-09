@@ -14,7 +14,7 @@ export default function Filme() {
 
   async function getRandomMovie() {
     try {
-      const response = await fetch("https://random-life-backend.onrender.com/api/movies/random");
+      const response = await (fetch(import.meta.env.VITE_API_URL + "/api/filmes"));
       if (!response.ok) {
         throw new Error("Erro ao buscar filme do backend");
       }
