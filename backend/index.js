@@ -6,7 +6,7 @@ const path = require('path');
 const moviesRouter = require('./movies');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 10000;
 
 // Habilita CORS e JSON
 app.use(cors());
