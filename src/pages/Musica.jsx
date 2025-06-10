@@ -13,7 +13,7 @@ const Musica = () => {
     try {
       setLoading(true);
       setErro(false);
-      const res = await fetch("/api/music/random");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/music/random`);
       if (!res.ok) throw new Error("Falha na requisição");
       const data = await res.json();
       setAlbum(data);
