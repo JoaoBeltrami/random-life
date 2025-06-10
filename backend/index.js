@@ -4,6 +4,9 @@ const cors = require('cors');
 const path = require('path');
 
 const moviesRouter = require('./movies');
+const musicRouter = require('./music');
+app.use('/api/music', musicRouter);
+
 
 const app = express();
 const PORT = process.env.PORT || 10000;
