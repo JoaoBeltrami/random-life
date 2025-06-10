@@ -6,16 +6,20 @@ import { useNavigate } from "react-router-dom";
 const Musica = () => {
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(false);
   const navigate = useNavigate();
 
   const buscarAlbum = async () => {
     try {
       setLoading(true);
+      setErro(false);
       const res = await fetch("/api/music/random");
+      if (!res.ok) throw new Error("Falha na requisição");
       const data = await res.json();
       setAlbum(data);
     } catch (error) {
       console.error("Erro ao buscar álbum:", error);
+      setErro(true);
     } finally {
       setLoading(false);
     }
@@ -43,6 +47,8 @@ const Musica = () => {
 
       {loading ? (
         <p className="text-white text-xl mt-24">Carregando álbum...</p>
+      ) : erro ? (
+        <p className="text-white text-xl mt-24">Erro ao carregar álbum. Tente novamente.</p>
       ) : album ? (
         <motion.div
           key={album.nome}
@@ -54,7 +60,7 @@ const Musica = () => {
         >
           {/* Imagem */}
           <img
-            src={album.imagem}
+            src={album.imagem || "/fallback-album.jpg"}
             alt={album.nome}
             className="w-full md:w-1/3 object-cover"
             style={{ minHeight: "320px" }}
@@ -66,7 +72,18 @@ const Musica = () => {
             <p className="text-lg italic mb-2 text-gray-700">Artista: {album.artista}</p>
             <p className="text-base font-light mb-2">Ano: {album.ano}</p>
             <p className="text-base font-light mb-4">Gênero: {album.genero}</p>
-            <p className="text-base font-light leading-relaxed">{album.descricao}</p>
+            <p className="text-base font-light leading-relaxed mb-4">{album.descricao}</p>
+
+            {album.spotifyUrl && (
+              <a
+                href={album.spotifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-green-700 hover:bg-green-800 text-white py-2 px-6 rounded-xl font-medium transition"
+              >
+                Ouvir no Spotify
+              </a>
+            )}
           </div>
         </motion.div>
       ) : (
