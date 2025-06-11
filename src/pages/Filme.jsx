@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 export default function Filme() {
   const [movie, setMovie] = useState(null);
   const [clickCount, setClickCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,7 +15,8 @@ export default function Filme() {
 
   async function getRandomMovie() {
     try {
-      const response = await (fetch(import.meta.env.VITE_API_URL + "/api/movies/random"));
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/movies/random`);
       if (!response.ok) {
         throw new Error("Erro ao buscar filme do backend");
       }
@@ -24,6 +26,8 @@ export default function Filme() {
     } catch (error) {
       console.error("Erro ao buscar filme:", error);
       setMovie(null);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -32,8 +36,11 @@ export default function Filme() {
     getRandomMovie();
   };
 
-  const retryMessage =
-    clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
+  const retryMessage = clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
+
+  const poster = movie?.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : "/default-movie.jpg";
 
   return (
     <div
@@ -51,8 +58,12 @@ export default function Filme() {
         <ArrowLeft size={32} />
       </button>
 
+      {loading && (
+        <p className="text-white text-xl font-semibold">Carregando filme aleatório...</p>
+      )}
+
       <AnimatePresence mode="wait">
-        {movie && (
+        {!loading && movie && (
           <motion.div
             key={movie.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -63,7 +74,7 @@ export default function Filme() {
           >
             {/* Imagem */}
             <motion.img
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+              src={poster}
               alt={movie.title}
               className="w-full md:w-1/2 object-cover brightness-95"
               initial={{ x: -50, opacity: 0 }}
@@ -97,6 +108,14 @@ export default function Filme() {
                 <p className="text-base font-semibold text-white leading-relaxed drop-shadow-md">
                   {movie.overview}
                 </p>
+                <a
+                  href={`https://www.themoviedb.org/movie/${movie.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline mt-4 inline-block"
+                >
+                  Ver mais detalhes no TMDb
+                </a>
               </div>
 
               <div className="mt-6 flex flex-col items-center">

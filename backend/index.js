@@ -5,6 +5,8 @@ const path = require('path');
 
 const moviesRouter = require('./movies');
 const musicRouter = require('./music');
+const booksRouter = require('./books');
+const foodRouter = require('./food'); // <-- Novo
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -12,11 +14,11 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// Rotas da API
 app.use('/api/movies', moviesRouter);
 app.use('/api/music', musicRouter);
+app.use('/api/books', booksRouter);
+app.use('/api/food', foodRouter); // <-- Novo
 
-// Servir frontend (React)
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
 

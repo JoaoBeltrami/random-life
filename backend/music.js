@@ -4,33 +4,67 @@ const getSpotifyToken = require('./spotifyAuth');
 
 const router = express.Router();
 
+const generosAceitos = [
+  'metal', 'rock', 'hard-rock', 'punk', 'grunge',
+  'pop', 'rap', 'trap', 'hip-hop', 'r&b', 'reggaeton'
+];
+
 router.get('/random', async (req, res) => {
   try {
     const token = await getSpotifyToken();
 
-    // Buscar lançamentos recentes (você pode trocar esse endpoint futuramente)
-    const response = await axios.get('https://api.spotify.com/v1/browse/new-releases?limit=50', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // Escolher um gênero aceito aleatório
+    const genero = generosAceitos[Math.floor(Math.random() * generosAceitos.length)];
 
-    const albums = response.data.albums.items;
+    // Buscar playlists populares do gênero
+    const playlistsRes = await axios.get(
+      `https://api.spotify.com/v1/search?q=${genero}&type=playlist&limit=10`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-    if (!albums || albums.length === 0) {
-      return res.status(404).json({ error: 'Nenhum álbum encontrado' });
+    const playlists = playlistsRes.data.playlists.items;
+
+    if (!playlists || playlists.length === 0) {
+      return res.status(404).json({ error: 'Nenhuma playlist encontrada' });
     }
 
-    const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+    // Seleciona uma playlist aleatória
+    const playlist = playlists[Math.floor(Math.random() * playlists.length)];
+
+    // Pega as faixas da playlist
+    const tracksRes = await axios.get(
+      `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const tracks = tracksRes.data.items
+      .map(item => item.track && item.track.album)
+      .filter(album => album && album.album_type === 'album' && album.release_date && album.artists && album.images.length > 0);
+
+    const albunsUnicos = [];
+    const nomesVistos = new Set();
+
+    for (const album of tracks) {
+      if (!nomesVistos.has(album.name)) {
+        nomesVistos.add(album.name);
+        albunsUnicos.push(album);
+      }
+    }
+
+    if (albunsUnicos.length === 0) {
+      return res.status(404).json({ error: 'Nenhum álbum válido encontrado' });
+    }
+
+    const albumEscolhido = albunsUnicos[Math.floor(Math.random() * albunsUnicos.length)];
 
     const albumData = {
-      nome: randomAlbum.name,
-      artista: randomAlbum.artists.map((a) => a.name).join(', '),
-      imagem: randomAlbum.images[0]?.url || '',
-      ano: new Date(randomAlbum.release_date).getFullYear(),
-      genero: "Desconhecido",
-      descricao: `Álbum lançado por ${randomAlbum.artists[0].name} em ${randomAlbum.release_date}.`,
-      spotifyUrl: randomAlbum.external_urls.spotify,
+      nome: albumEscolhido.name,
+      artista: albumEscolhido.artists.map((a) => a.name).join(', '),
+      imagem: albumEscolhido.images[0]?.url || '',
+      ano: new Date(albumEscolhido.release_date).getFullYear(),
+      genero: genero,
+      descricao: `Álbum de ${genero}, lançado por ${albumEscolhido.artists[0].name}.`,
+      spotifyUrl: albumEscolhido.external_urls.spotify,
     };
 
     res.json(albumData);
