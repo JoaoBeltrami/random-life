@@ -17,6 +17,7 @@ router.get('/random', async (req, res) => {
     const genero = generosAceitos[Math.floor(Math.random() * generosAceitos.length)];
     console.log("🎧 Gênero sorteado:", genero);
 
+    // Busca playlists relacionadas ao gênero
     const playlistsRes = await axios.get(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(genero)}&type=playlist&limit=10`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -28,7 +29,7 @@ router.get('/random', async (req, res) => {
       return res.status(404).json({ error: 'Nenhuma playlist encontrada' });
     }
 
-    // Embaralhar playlists para tentar várias até achar tracks boas
+    // Embaralha playlists para varrer várias possibilidades
     for (const playlist of shuffleArray(playlists)) {
       const tracksRes = await axios.get(
         `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`,
@@ -37,6 +38,7 @@ router.get('/random', async (req, res) => {
 
       const tracks = tracksRes.data.items || [];
 
+      // Filtra os álbuns únicos das tracks válidas
       const albuns = tracks
         .map(item => item.track?.album)
         .filter(album =>
@@ -60,12 +62,17 @@ router.get('/random', async (req, res) => {
 
       if (albunsUnicos.length > 0) {
         const albumEscolhido = albunsUnicos[Math.floor(Math.random() * albunsUnicos.length)];
+
+        // Garante ano numérico
+        const ano = parseInt(albumEscolhido.release_date.slice(0,4), 10) || 'Desconhecido';
+
         const albumData = {
           nome: albumEscolhido.name,
-          artista: albumEscolhido.artists.map((a) => a.name).join(', '),
+          artista: albumEscolhido.artists.map(a => a.name).join(', '),
           imagem: albumEscolhido.images[0]?.url || '',
-          ano: new Date(albumEscolhido.release_date).getFullYear(),
+          ano: ano,
           genero: genero,
+          duracao: albumEscolhido.total_tracks || 'Desconhecido', // número de faixas
           descricao: `Álbum de ${genero}, lançado por ${albumEscolhido.artists[0].name}.`,
           spotifyUrl: albumEscolhido.external_urls.spotify,
         };
@@ -86,7 +93,7 @@ router.get('/random', async (req, res) => {
   }
 });
 
-// Embaralhador de array (Fisher-Yates)
+// Função para embaralhar array (Fisher-Yates)
 function shuffleArray(array) {
   const a = [...array];
   for (let i = a.length - 1; i > 0; i--) {

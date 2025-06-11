@@ -1,20 +1,41 @@
 import { Dice5 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Logo() {
   const [showBubble, setShowBubble] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [easterEggActive, setEasterEggActive] = useState(false);
+  const hoverTimerRef = useRef(null);
+  const resetTimerRef = useRef(null);
 
   const toggleBubble = () => setShowBubble((prev) => !prev);
+
   const showOnHover = () => {
     setHovering(true);
     setShowBubble(true);
+
+    // Inicia o temporizador do easter egg
+    hoverTimerRef.current = setTimeout(() => {
+      setEasterEggActive(true);
+      resetTimerRef.current = setTimeout(() => {
+        setEasterEggActive(false);
+      }, 30000); // Dura 30 segundos
+    }, 20000); // Ativa após 20 segundos de hover
   };
+
   const hideOnLeave = () => {
     setHovering(false);
     setShowBubble(false);
+    clearTimeout(hoverTimerRef.current);
   };
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(hoverTimerRef.current);
+      clearTimeout(resetTimerRef.current);
+    };
+  }, []);
 
   return (
     <div
@@ -27,7 +48,11 @@ export default function Logo() {
       <div className="flex items-center gap-4">
         <motion.div
           animate={hovering ? { rotate: 360 } : { rotate: 0 }}
-          transition={{ repeat: hovering ? Infinity : 0, duration: 2, ease: "linear" }}
+          transition={{
+            repeat: hovering ? Infinity : 0,
+            duration: 2,
+            ease: "linear",
+          }}
         >
           <Dice5 className="w-16 h-16 md:w-24 md:h-24 text-white drop-shadow" />
         </motion.div>
@@ -38,7 +63,7 @@ export default function Logo() {
           transition={{ duration: 0.8 }}
           className="text-6xl md:text-8xl font-extrabold text-white tracking-widest drop-shadow-xl"
         >
-          Life Randomizer
+          {easterEggActive ? "Mychelly ❤️" : "Life Randomizer"}
         </motion.h1>
       </div>
 

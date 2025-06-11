@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+const containerVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+  exit: { opacity: 0, scale: 0.7, transition: { duration: 0.3, ease: "easeIn" } }
+};
 
 const Musica = () => {
   const [album, setAlbum] = useState(null);
@@ -33,65 +39,84 @@ const Musica = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6"
+      className="min-h-screen flex flex-col items-center justify-center p-6 relative select-none"
       style={{
         background: "linear-gradient(135deg, #2ecc71 0%, #145a32 100%)",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
       }}
     >
+      {/* Botão Voltar */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-6 left-6 text-white hover:text-green-200 transition-colors duration-300"
+        className="absolute top-6 left-6 text-white hover:text-green-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 rounded"
+        aria-label="Voltar para a página inicial"
       >
         <ArrowLeftIcon className="h-10 w-10" />
       </button>
 
+      {/* Mensagens de status */}
       {loading && (
-        <p className="text-white text-xl select-none mb-4">Carregando álbum...</p>
+        <p className="text-white text-xl mb-6 animate-pulse">Carregando álbum...</p>
       )}
 
       {erro && (
-        <p className="text-white text-xl mb-4">Erro ao carregar o álbum.</p>
+        <p className="text-white text-xl mb-6">Erro ao carregar o álbum. Tente novamente.</p>
       )}
 
       {!loading && !erro && !album && (
-        <p className="text-white text-lg select-none">Nenhum álbum encontrado.</p>
+        <p className="text-white text-lg mb-6">Nenhum álbum encontrado.</p>
       )}
 
-      {album && (
-        <motion.div
-          key={album.nome}
-          initial={{ opacity: 0, scale: 0.7 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col overflow-hidden border-4 border-green-800"
-        >
-          <img
-            src={album.imagem}
-            alt={album.nome}
-            className="w-full h-64 object-cover"
-          />
-          <div className="p-6 text-center">
-            <h2 className="text-3xl font-bold text-green-800">{album.nome}</h2>
-            <p className="text-md text-gray-700">{album.artista}</p>
-            <p className="text-sm text-gray-600">{album.ano} • {album.genero}</p>
-            <a
-              href={album.spotifyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-4 text-green-700 font-semibold hover:underline"
-            >
-              Ouvir no Spotify
-            </a>
-          </div>
-        </motion.div>
-      )}
+      {/* Card do álbum com animação */}
+      <AnimatePresence mode="wait">
+        {album && !loading && !erro && (
+          <motion.div
+            key={album.nome}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="max-w-xl w-full bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border-4 border-green-900"
+          >
+            {/* Capa do álbum */}
+            <img
+              src={album.imagem}
+              alt={`Capa do álbum ${album.nome}`}
+              className="w-full md:w-1/3 object-cover"
+              loading="lazy"
+              draggable={false}
+            />
 
+            {/* Info do álbum */}
+            <div className="p-6 flex flex-col justify-center text-center md:text-left md:px-10">
+              <h2 className="text-4xl font-extrabold text-green-900 mb-2 truncate">{album.nome}</h2>
+              <p className="text-lg text-gray-800 font-semibold mb-1 truncate">{album.artista}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                {album.ano} • {album.genero} • {album.duracao} faixas
+              </p>
+              <a
+                href={album.spotifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-auto text-green-800 font-semibold hover:text-green-600 underline transition-colors duration-300"
+              >
+                Ouvir no Spotify
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Botão buscar outro */}
       <button
         onClick={buscarAlbum}
-        className="mt-8 bg-green-800 hover:bg-green-900 text-white py-3 px-8 rounded-2xl shadow-lg text-lg font-semibold transition-colors duration-300"
+        disabled={loading}
+        className={`mt-10 px-10 py-3 rounded-3xl font-semibold text-white shadow-lg
+          transition-colors duration-300
+          ${loading ? "bg-green-500 cursor-not-allowed" : "bg-green-900 hover:bg-green-800"}
+        `}
       >
-        Tentar outro álbum
+        {loading ? "Carregando..." : "Tentar outro álbum"}
       </button>
     </div>
   );

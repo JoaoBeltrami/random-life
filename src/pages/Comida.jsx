@@ -58,7 +58,7 @@ export default function Comida() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col gap-6"
         >
-          <h1 className="text-4xl font-bold mb-6 drop-shadow-lg">Escolha uma categoria</h1>
+          <h1 className="text-4xl font-bold mb-6 drop-shadow-lg text-center">Escolha uma categoria</h1>
           <button
             onClick={fetchDelivery}
             className="bg-red-800 hover:bg-red-900 px-8 py-3 rounded-xl font-semibold shadow-lg transition-colors"
@@ -77,19 +77,25 @@ export default function Comida() {
       {loading && <p className="mt-6 text-lg drop-shadow-sm">Carregando...</p>}
 
       {view === "delivery" && data && (
-        <motion.ul
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-8 space-y-3 max-w-md w-full"
+          className="mt-8 max-w-md w-full bg-red-800 rounded-xl p-6 shadow-lg text-center"
         >
-          {data.map((item, i) => (
-            <li
-              key={i}
-              className="bg-red-700 rounded-lg p-3 shadow-md text-center font-semibold"
-            >
-              {item}
-            </li>
-          ))}
+          <h2 className="text-2xl font-bold mb-4">{data.name}</h2>
+          <img
+            src={data.image}
+            alt={data.name}
+            className="w-full h-60 object-cover rounded-lg mb-4"
+          />
+          <a
+            href={data.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-red-900 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold inline-block transition"
+          >
+            Abrir no iFood
+          </a>
           <button
             onClick={() => {
               setView(null);
@@ -99,39 +105,43 @@ export default function Comida() {
           >
             Voltar
           </button>
-        </motion.ul>
+        </motion.div>
       )}
 
       {view === "recipe" && data && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-8 max-w-lg w-full bg-red-800 rounded-xl p-6 shadow-lg overflow-auto"
-          style={{ maxHeight: "70vh" }}
+          className="mt-8 max-w-4xl w-full bg-red-800 rounded-xl p-6 shadow-2xl flex flex-col md:flex-row gap-6"
         >
-          <h2 className="text-3xl font-bold mb-3">{data.name}</h2>
           <img
             src={data.thumbnail}
             alt={data.name}
-            className="w-full rounded-lg mb-4"
+            className="w-full md:w-1/2 rounded-lg object-cover"
           />
-          <h3 className="font-semibold mb-2">Ingredientes:</h3>
-          <ul className="list-disc list-inside mb-4">
-            {data.ingredients.map((ing, i) => (
-              <li key={i}>{ing}</li>
-            ))}
-          </ul>
-          <h3 className="font-semibold mb-2">Instruções:</h3>
-          <p className="whitespace-pre-line">{data.instructions}</p>
-          <button
-            onClick={() => {
-              setView(null);
-              setData(null);
-            }}
-            className="mt-6 bg-red-900 hover:bg-red-800 px-6 py-2 rounded-lg transition-colors"
-          >
-            Voltar
-          </button>
+          <div className="flex-1 text-white">
+            <h2 className="text-3xl font-bold mb-2">{data.name}</h2>
+
+            <h3 className="text-lg font-semibold mt-4 mb-1">Ingredientes:</h3>
+            <ul className="list-disc list-inside mb-4 text-sm">
+              {data.ingredients.map((ing, i) => (
+                <li key={i}>{ing}</li>
+              ))}
+            </ul>
+
+            <h3 className="text-lg font-semibold mb-1">Instruções:</h3>
+            <p className="text-sm whitespace-pre-line">{data.instructions}</p>
+
+            <button
+              onClick={() => {
+                setView(null);
+                setData(null);
+              }}
+              className="mt-6 bg-red-900 hover:bg-red-700 px-6 py-2 rounded-lg transition"
+            >
+              Voltar
+            </button>
+          </div>
         </motion.div>
       )}
     </div>
