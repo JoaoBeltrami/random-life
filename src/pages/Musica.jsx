@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../utils/api";
+
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Musica = () => {
   const [album, setAlbum] = useState(null);
@@ -15,7 +16,7 @@ const Musica = () => {
       setLoading(true);
       setErro(false);
       setAlbum(null);
-      const res = await fetch(`${API_BASE_URL}/api/music/random`);
+      const res = await fetch(`${BASE_URL}/api/music/random`);
       const data = await res.json();
       setAlbum(data);
     } catch (error) {

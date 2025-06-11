@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
 export default function Comida() {
   const [view, setView] = useState(null); // 'delivery' ou 'recipe'
   const [data, setData] = useState(null);
@@ -10,19 +12,27 @@ export default function Comida() {
 
   async function fetchDelivery() {
     setLoading(true);
-    setView('delivery');
-    const res = await fetch('/api/food/delivery');
-    const json = await res.json();
-    setData(json);
+    setView("delivery");
+    try {
+      const res = await fetch(`${BASE_URL}/api/food/delivery`);
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error("Erro ao buscar delivery:", err);
+    }
     setLoading(false);
   }
 
   async function fetchRecipe() {
     setLoading(true);
-    setView('recipe');
-    const res = await fetch('/api/food/recipe');
-    const json = await res.json();
-    setData(json);
+    setView("recipe");
+    try {
+      const res = await fetch(`${BASE_URL}/api/food/recipe`);
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error("Erro ao buscar receita:", err);
+    }
     setLoading(false);
   }
 
@@ -52,7 +62,7 @@ export default function Comida() {
 
       {loading && <p>Carregando...</p>}
 
-      {view === 'delivery' && data && (
+      {view === "delivery" && data && (
         <motion.ul
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -67,7 +77,10 @@ export default function Comida() {
             </li>
           ))}
           <button
-            onClick={() => { setView(null); setData(null); }}
+            onClick={() => {
+              setView(null);
+              setData(null);
+            }}
             className="mt-6 bg-red-900 px-6 py-2 rounded-lg"
           >
             Voltar
@@ -75,15 +88,19 @@ export default function Comida() {
         </motion.ul>
       )}
 
-      {view === 'recipe' && data && (
+      {view === "recipe" && data && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="mt-8 max-w-lg bg-red-800 rounded-xl p-6 shadow-lg overflow-auto"
-          style={{ maxHeight: '70vh' }}
+          style={{ maxHeight: "70vh" }}
         >
           <h2 className="text-3xl font-bold mb-3">{data.name}</h2>
-          <img src={data.thumbnail} alt={data.name} className="w-full rounded-lg mb-4" />
+          <img
+            src={data.thumbnail}
+            alt={data.name}
+            className="w-full rounded-lg mb-4"
+          />
           <h3 className="font-semibold mb-2">Ingredientes:</h3>
           <ul className="list-disc list-inside mb-4">
             {data.ingredients.map((ing, i) => (
@@ -93,7 +110,10 @@ export default function Comida() {
           <h3 className="font-semibold mb-2">Instruções:</h3>
           <p className="whitespace-pre-line">{data.instructions}</p>
           <button
-            onClick={() => { setView(null); setData(null); }}
+            onClick={() => {
+              setView(null);
+              setData(null);
+            }}
             className="mt-6 bg-red-900 px-6 py-2 rounded-lg"
           >
             Voltar

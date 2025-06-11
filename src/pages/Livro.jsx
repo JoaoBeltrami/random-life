@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../utils/api"; // sua base da API backend
+
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Livro = () => {
   const [livro, setLivro] = useState(null);
@@ -16,7 +17,7 @@ const Livro = () => {
     setLivro(null);
 
     try {
-      const resposta = await fetch(`${API_BASE_URL}/api/books/random`);
+      const resposta = await fetch(`${BASE_URL}/api/books/random`);
       const data = await resposta.json();
 
       if (data && data.titulo) {
