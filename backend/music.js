@@ -41,7 +41,7 @@ router.get('/random', async (req, res) => {
 
         const albuns = tracks
           .map(item => item?.track?.album)
-          .filter(album => album != null); // remove nulos
+          .filter(album => album != null && !isSertanejo(album));
 
         const albunsUnicos = [];
         const nomesVistos = new Set();
@@ -55,8 +55,29 @@ router.get('/random', async (req, res) => {
         }
 
         if (albunsUnicos.length > 0) {
+          // Favoritos: duplicar álbuns de gêneros preferidos para aumentar a chance
+          const favorecidos = ['metal', 'rock', 'pop'];
+          const ponderado = [];
+
+          for (const album of albunsUnicos) {
+            const nome = album?.name?.toLowerCase() || '';
+            const artistas = (album?.artists || []).map(a => a.name.toLowerCase()).join(' ');
+            const stringCompleta = nome + ' ' + artistas;
+
+            const favorito = favorecidos.some(g =>
+              stringCompleta.includes(g)
+            );
+
+            if (favorito) {
+              // Duplica para dar mais chance
+              ponderado.push(album, album, album);
+            } else {
+              ponderado.push(album);
+            }
+          }
+
           const albumEscolhido =
-            albunsUnicos.find(album =>
+            shuffleArray(ponderado).find(album =>
               album?.name &&
               album?.artists?.length &&
               album?.images?.length &&
@@ -86,6 +107,16 @@ router.get('/random', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar álbum no Spotify' });
   }
 });
+
+// Excluir álbuns com tag "sertanejo" no nome ou nos artistas
+function isSertanejo(album) {
+  const termosBloqueados = ['sertanejo'];
+  const nomeAlbum = (album?.name || '').toLowerCase();
+  const nomesArtistas = (album?.artists || []).map(a => a.name.toLowerCase()).join(' ');
+  return termosBloqueados.some(termo =>
+    nomeAlbum.includes(termo) || nomesArtistas.includes(termo)
+  );
+}
 
 // Embaralhar array
 function shuffleArray(array) {
