@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeftIcon, RefreshIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -35,8 +35,13 @@ const Musica = () => {
       if (!res.ok) throw new Error("Erro na resposta do servidor");
       const data = await res.json();
 
-      // Validação básica do retorno
-      if (!data.nome || !data.artista || !data.imagem || !data.numeroFaixas || !data.spotifyUrl) {
+      if (
+        !data.nome ||
+        !data.artista ||
+        !data.imagem ||
+        !data.numeroFaixas ||
+        !data.spotifyUrl
+      ) {
         throw new Error("Dados incompletos recebidos");
       }
 
@@ -74,7 +79,10 @@ const Musica = () => {
 
       {/* Mensagens de status */}
       {loading && (
-        <p className="text-white text-2xl font-semibold mb-8 animate-pulse" role="alert">
+        <p
+          className="text-white text-2xl font-semibold mb-8 animate-pulse"
+          role="alert"
+        >
           Carregando álbum...
         </p>
       )}
@@ -176,7 +184,7 @@ const Musica = () => {
           </>
         ) : (
           <>
-            <RefreshIcon className="h-6 w-6" />
+            <ArrowPathIcon className="h-6 w-6" />
             Tentar outro álbum
           </>
         )}
