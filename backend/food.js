@@ -3,56 +3,61 @@ const fetch = require('node-fetch');
 
 const router = express.Router();
 
+// Pega a Access Key do Unsplash do .env
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
+
+// Lista de delivery (nomes simples)
 const deliveryOptions = [
   "Pizza", "Hambúrguer", "Sushi", "Lasanha", "Churrasco",
   "Comida Mexicana", "Salada", "Sanduíche", "Frango Frito", "Tapioca"
 ];
 
-// Rota atual que retorna só nomes (mantida)
+// Rota que retorna só nomes (mantida)
 router.get('/delivery', (req, res) => {
   res.json(deliveryOptions);
 });
 
-// Nova rota que retorna lista com nome + imagem real para delivery
-router.get('/delivery/full', (req, res) => {
-  const deliveryFull = [
-    {
-      name: "Pizza Margherita",
-      image: "https://images.unsplash.com/photo-1601924638867-3c7a1a4d1a1e?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Sushi",
-      image: "https://images.unsplash.com/photo-1562158070-6a3e6c5e2bc0?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Hambúrguer Clássico",
-      image: "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Açaí na Tigela",
-      image: "https://images.unsplash.com/photo-1588008361856-1e8264428bfb?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Pastel de Feira",
-      image: "https://images.unsplash.com/photo-1562967916-eb82221dfb32?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Crepe Suíço",
-      image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Crepe Francês",
-      image: "https://images.unsplash.com/photo-1505253210343-1b97a9aef7c3?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      name: "Ramen",
-      image: "https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=800&q=80"
+// Função para buscar imagem no Unsplash pelo termo (query)
+async function fetchUnsplashImage(query) {
+  try {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      // Pega a URL da imagem regular (ou a que preferir)
+      return data.results[0].urls.regular;
+    } else {
+      // Retorna uma imagem genérica ou null se não achar
+      return null;
     }
-  ];
-  res.json(deliveryFull);
+  } catch (error) {
+    console.error('Erro ao buscar imagem no Unsplash:', error);
+    return null;
+  }
+}
+
+// Rota que retorna lista com nome + imagem real para delivery, buscando no Unsplash
+router.get('/delivery/full', async (req, res) => {
+  try {
+    // Mapear os itens da lista para objetos com imagem do Unsplash
+    const deliveryFull = await Promise.all(
+      deliveryOptions.map(async (item) => {
+        const image = await fetchUnsplashImage(item + " food"); // adiciona "food" para melhorar resultado
+        return {
+          name: item,
+          image: image || 'https://via.placeholder.com/800x600?text=No+Image', // placeholder se não achar
+        };
+      })
+    );
+    res.json(deliveryFull);
+  } catch (error) {
+    console.error('Erro ao montar lista delivery/full:', error);
+    res.status(500).json({ error: 'Erro ao buscar imagens delivery' });
+  }
 });
 
-// Mantém seu endpoint de receita
+// Endpoint que retorna uma receita aleatória do TheMealDB (mantido)
 router.get('/recipe', async (req, res) => {
   try {
     const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
