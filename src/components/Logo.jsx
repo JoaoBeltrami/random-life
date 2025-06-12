@@ -15,13 +15,12 @@ export default function Logo() {
     setHovering(true);
     setShowBubble(true);
 
-    // Inicia o temporizador do easter egg
     hoverTimerRef.current = setTimeout(() => {
       setEasterEggActive(true);
       resetTimerRef.current = setTimeout(() => {
         setEasterEggActive(false);
-      }, 30000); // Dura 30 segundos
-    }, 20000); // Ativa após 20 segundos de hover
+      }, 30000);
+    }, 20000);
   };
 
   const hideOnLeave = () => {
@@ -82,7 +81,6 @@ export default function Logo() {
             className="flex items-center gap-4 select-none whitespace-nowrap drop-shadow-xl"
             aria-label="Easter egg ativado: Mychelly coração"
           >
-            {/* Dado girando */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{
@@ -94,45 +92,30 @@ export default function Logo() {
               <Dice5 className="w-16 h-16 md:w-24 md:h-24 text-white" />
             </motion.div>
 
-            {/* Texto Mychelly com outline preto */}
             <motion.h1
               className="text-7xl md:text-9xl font-extrabold text-white"
               style={{
                 WebkitTextStroke: "1.5px black",
                 textStroke: "1.5px black",
+                textShadow:
+                  "0 1px 3px rgba(0, 0, 0, 0.15)", // sombra leve sutil
               }}
             >
               Mychelly
             </motion.h1>
 
-            {/* Coração pulsando e balançando */}
-            <motion.span
+            <span
               role="img"
-              aria-label="coração pulsando"
-              className="text-7xl md:text-9xl"
-              animate={{
-                scale: [1, 1.3, 1],
-                rotate: [0, 10, -10, 0],
-                boxShadow: [
-                  "0 0 0px rgba(255,0,0,0)",
-                  "0 0 8px rgba(255,0,0,0.7)",
-                  "0 0 0px rgba(255,0,0,0)",
-                ],
-              }}
-              transition={{
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: 2,
-                ease: "easeInOut",
-              }}
+              aria-label="coração"
+              className="text-16 md:text-24" // para ficar do tamanho do dado
+              style={{ lineHeight: 1 }}
             >
               ❤️
-            </motion.span>
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Balão da frase */}
       <AnimatePresence>
         {showBubble && !easterEggActive && (
           <motion.div
