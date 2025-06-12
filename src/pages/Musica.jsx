@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export default function Musica() {
   const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
@@ -18,7 +20,10 @@ export default function Musica() {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -28,11 +33,13 @@ export default function Musica() {
     setAlbum(null);
     setShowFunnyMsg(false);
     try {
-      const res = await fetch(`/api/music/random?dark=${isDark}`);
+      const res = await fetch(
+        `${BACKEND_URL}/api/music/random?dark=${isDark}`
+      );
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const data = await res.json();
       setAlbum(data);
-      setClickCount(0); // zera contagem ao buscar novo álbum com sucesso
+      setClickCount(0); // reset click count on success
     } catch (err) {
       console.error(err);
       setError("Não foi possível carregar o álbum 😞");
@@ -71,16 +78,25 @@ export default function Musica() {
 
       <AnimatePresence mode="wait">
         {loading && (
-          <motion.p key="loading" className="text-white text-2xl font-medium animate-pulse">
+          <motion.p
+            key="loading"
+            className="text-white text-2xl font-medium animate-pulse"
+          >
             Carregando álbum...
           </motion.p>
         )}
 
         {error && (
-          <motion.div key="error" className="bg-red-600 text-white p-4 rounded-lg shadow-lg">
+          <motion.div
+            key="error"
+            className="bg-red-600 text-white p-4 rounded-lg shadow-lg"
+          >
             {error}
-            <button className="mt-2 px-4 py-2 bg-red-700 rounded hover:bg-red-800"
-                    onClick={fetchAlbum} disabled={loading}>
+            <button
+              className="mt-2 px-4 py-2 bg-red-700 rounded hover:bg-red-800"
+              onClick={fetchAlbum}
+              disabled={loading}
+            >
               Tentar novamente
             </button>
           </motion.div>
@@ -98,7 +114,7 @@ export default function Musica() {
               src={album.imagem || "/placeholder-album.png"}
               alt={album.nome}
               className="mx-auto w-full max-w-xs h-auto rounded-lg shadow-xl mb-6"
-              onError={e => {
+              onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = "/placeholder-album.png";
               }}
