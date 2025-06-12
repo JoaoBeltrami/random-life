@@ -15,62 +15,66 @@ router.get('/random', async (req, res) => {
     while (tentativa < maxTentativas) {
       tentativa++;
 
-      // Busca playlists com a palavra "album"
       const playlistsRes = await axios.get(
-        `https://api.spotify.com/v1/search?q=album&type=playlist&limit=10`,
+        `https://api.spotify.com/v1/search?q=album&type=playlist&limit=10&market=BR`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const playlists = playlistsRes.data?.playlists?.items || [];
       if (playlists.length === 0) {
-        return res.status(404).json({ error: 'Nenhuma playlist encontrada' });
+        console.warn(`Tentativa ${tentativa}: Nenhuma playlist encontrada`);
+        continue;
       }
 
-      // Embaralha playlists para variar resultados
       for (const playlist of shuffleArray(playlists)) {
+        if (!playlist?.id) {
+          console.warn('Playlist sem ID encontrada, ignorando...');
+          continue;
+        }
+
         const tracksRes = await axios.get(
-          `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`,
+          `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100&market=BR`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const tracks = tracksRes.data.items || [];
+        const tracks = tracksRes.data?.items || [];
 
-        // Filtra álbuns válidos: album_type "album", com imagem, nome, artista e url
         const albuns = tracks
-          .map(item => item.track?.album)
-          .filter(album =>
-            album &&
-            album.album_type === 'album' &&
-            album.name &&
-            album.artists?.length &&
-            album.images?.length &&
-            album.external_urls?.spotify &&
-            album.total_tracks
-          );
+          .map(item => item?.track?.album)
+          .filter(album => album != null); // remove nulos
 
-        // Remove duplicados pelo nome do álbum
         const albunsUnicos = [];
         const nomesVistos = new Set();
 
         for (const album of albuns) {
-          if (!nomesVistos.has(album.name)) {
-            nomesVistos.add(album.name);
+          const nome = album?.name || '';
+          if (nome && !nomesVistos.has(nome)) {
+            nomesVistos.add(nome);
             albunsUnicos.push(album);
           }
         }
 
         if (albunsUnicos.length > 0) {
-          const albumEscolhido = albunsUnicos[Math.floor(Math.random() * albunsUnicos.length)];
+          const albumEscolhido =
+            albunsUnicos.find(album =>
+              album?.name &&
+              album?.artists?.length &&
+              album?.images?.length &&
+              album?.external_urls?.spotify
+            ) || albunsUnicos[0];
 
           const albumData = {
-            nome: albumEscolhido.name,
-            artista: albumEscolhido.artists.map(a => a.name).join(', '),
-            imagem: albumEscolhido.images[0].url,
-            numeroFaixas: albumEscolhido.total_tracks,
-            spotifyUrl: albumEscolhido.external_urls.spotify,
+            nome: albumEscolhido?.name || 'Nome não disponível',
+            artista: albumEscolhido?.artists?.map(a => a.name).join(', ') || 'Artista não disponível',
+            imagem: albumEscolhido?.images?.[0]?.url || '',
+            numeroFaixas: albumEscolhido?.total_tracks || 0,
+            spotifyUrl: albumEscolhido?.external_urls?.spotify || '',
           };
 
+          console.log(`Álbum retornado: ${albumData.nome} - ${albumData.artista}`);
           return res.json(albumData);
+        } else {
+          console.warn(`Tentativa ${tentativa}: Nenhum álbum válido na playlist ${playlist.name}`);
         }
       }
     }
@@ -83,7 +87,7 @@ router.get('/random', async (req, res) => {
   }
 });
 
-// Função para embaralhar array (Fisher-Yates)
+// Embaralhar array
 function shuffleArray(array) {
   const a = [...array];
   for (let i = a.length - 1; i > 0; i--) {
