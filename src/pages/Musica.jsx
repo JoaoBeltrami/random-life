@@ -47,9 +47,9 @@ const Musica = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 relative select-none"
+      className="min-h-screen flex flex-col items-center justify-center p-8 relative select-none"
       style={{
-        background: "linear-gradient(135deg, #2ecc71 0%, #145a32 100%)",
+        background: "linear-gradient(135deg, #27ae60 0%, #145a32 100%)",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
       }}
     >
@@ -64,13 +64,17 @@ const Musica = () => {
 
       {/* Mensagens de status */}
       {loading && (
-        <p className="text-white text-xl mb-6 animate-pulse">Carregando álbum...</p>
+        <p className="text-white text-2xl font-semibold mb-8 animate-pulse">
+          Carregando álbum...
+        </p>
       )}
       {erro && (
-        <p className="text-white text-xl mb-6">Erro ao carregar o álbum. Tente novamente.</p>
+        <p className="text-white text-2xl font-semibold mb-8">
+          Erro ao carregar o álbum. Tente novamente.
+        </p>
       )}
       {!loading && !erro && !album && (
-        <p className="text-white text-lg mb-6">Nenhum álbum encontrado.</p>
+        <p className="text-white text-xl mb-8">Nenhum álbum encontrado.</p>
       )}
 
       {/* Card do álbum com animação */}
@@ -82,10 +86,10 @@ const Musica = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full max-w-4xl bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border-4 border-green-900"
+            className="w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_25px_50px_rgba(0,128,0,0.35)] flex flex-col md:flex-row overflow-hidden border-4 border-green-900"
           >
             {/* Capa do álbum */}
-            <div className="md:w-1/2 h-72 md:h-auto">
+            <div className="md:w-1/2 h-80 md:h-auto">
               <img
                 src={album.imagem}
                 alt={`Capa do álbum ${album.nome}`}
@@ -96,17 +100,21 @@ const Musica = () => {
             </div>
 
             {/* Informações do álbum */}
-            <div className="p-8 flex flex-col justify-center text-center md:text-left md:w-1/2">
-              <h2 className="text-4xl font-extrabold text-green-900 mb-3">{album.nome}</h2>
-              <p className="text-xl text-gray-800 font-semibold mb-2">{album.artista}</p>
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-10 flex flex-col justify-center text-center md:text-left md:w-1/2">
+              <h2 className="text-5xl font-extrabold text-green-900 mb-4 drop-shadow-md">
+                {album.nome}
+              </h2>
+              <p className="text-3xl text-gray-900 font-semibold mb-3 drop-shadow-sm">
+                {album.artista}
+              </p>
+              <p className="text-lg text-gray-700 mb-6 tracking-wide">
                 {album.ano} • {album.genero} • {album.duracao} faixas
               </p>
               <a
                 href={album.spotifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-auto text-green-800 font-semibold hover:text-green-600 underline transition-colors duration-300"
+                className="inline-block mt-auto px-6 py-3 rounded-full bg-green-800 text-white font-bold hover:bg-green-700 shadow-lg transition-colors duration-300"
               >
                 Ouvir no Spotify
               </a>
@@ -119,7 +127,7 @@ const Musica = () => {
       <button
         onClick={buscarAlbum}
         disabled={loading}
-        className={`mt-10 px-10 py-3 rounded-3xl font-semibold text-white shadow-lg
+        className={`mt-12 px-14 py-4 rounded-3xl font-extrabold text-white shadow-lg
           transition-colors duration-300
           ${loading ? "bg-green-500 cursor-not-allowed" : "bg-green-900 hover:bg-green-800"}
         `}
