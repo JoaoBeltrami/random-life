@@ -7,8 +7,16 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const containerVariants = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-  exit: { opacity: 0, scale: 0.7, transition: { duration: 0.3, ease: "easeIn" } }
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.7,
+    transition: { duration: 0.3, ease: "easeIn" },
+  },
 };
 
 const Musica = () => {
@@ -58,11 +66,9 @@ const Musica = () => {
       {loading && (
         <p className="text-white text-xl mb-6 animate-pulse">Carregando álbum...</p>
       )}
-
       {erro && (
         <p className="text-white text-xl mb-6">Erro ao carregar o álbum. Tente novamente.</p>
       )}
-
       {!loading && !erro && !album && (
         <p className="text-white text-lg mb-6">Nenhum álbum encontrado.</p>
       )}
@@ -76,21 +82,23 @@ const Musica = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="max-w-xl w-full bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border-4 border-green-900"
+            className="w-full max-w-4xl bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border-4 border-green-900"
           >
             {/* Capa do álbum */}
-            <img
-              src={album.imagem}
-              alt={`Capa do álbum ${album.nome}`}
-              className="w-full md:w-1/3 object-cover"
-              loading="lazy"
-              draggable={false}
-            />
+            <div className="md:w-1/2 h-72 md:h-auto">
+              <img
+                src={album.imagem}
+                alt={`Capa do álbum ${album.nome}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                draggable={false}
+              />
+            </div>
 
-            {/* Info do álbum */}
-            <div className="p-6 flex flex-col justify-center text-center md:text-left md:px-10">
-              <h2 className="text-4xl font-extrabold text-green-900 mb-2 truncate">{album.nome}</h2>
-              <p className="text-lg text-gray-800 font-semibold mb-1 truncate">{album.artista}</p>
+            {/* Informações do álbum */}
+            <div className="p-8 flex flex-col justify-center text-center md:text-left md:w-1/2">
+              <h2 className="text-4xl font-extrabold text-green-900 mb-3">{album.nome}</h2>
+              <p className="text-xl text-gray-800 font-semibold mb-2">{album.artista}</p>
               <p className="text-sm text-gray-600 mb-4">
                 {album.ano} • {album.genero} • {album.duracao} faixas
               </p>
@@ -107,7 +115,7 @@ const Musica = () => {
         )}
       </AnimatePresence>
 
-      {/* Botão buscar outro */}
+      {/* Botão "Tentar outro" */}
       <button
         onClick={buscarAlbum}
         disabled={loading}

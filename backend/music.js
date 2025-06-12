@@ -4,32 +4,24 @@ const getSpotifyToken = require('./spotifyAuth');
 
 const router = express.Router();
 
-const generosAceitos = [
-  'metal', 'rock', 'hard-rock', 'punk', 'grunge',
-  'pop', 'rap', 'trap', 'hip-hop', 'r&b', 'reggaeton'
-];
-
 router.get('/random', async (req, res) => {
   try {
     const token = await getSpotifyToken();
     if (!token) throw new Error('Token Spotify ausente ou inválido');
 
-    const genero = generosAceitos[Math.floor(Math.random() * generosAceitos.length)];
-    console.log("🎧 Gênero sorteado:", genero);
-
-    // Busca playlists relacionadas ao gênero
+    // Busca genérica de playlists com a palavra "album"
     const playlistsRes = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(genero)}&type=playlist&limit=10`,
+      `https://api.spotify.com/v1/search?q=album&type=playlist&limit=10`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
     const playlists = playlistsRes.data?.playlists?.items || [];
     if (playlists.length === 0) {
-      console.warn('⚠️ Nenhuma playlist encontrada para o gênero:', genero);
+      console.warn('⚠️ Nenhuma playlist encontrada com "album"');
       return res.status(404).json({ error: 'Nenhuma playlist encontrada' });
     }
 
-    // Embaralha playlists para varrer várias possibilidades
+    // Embaralha playlists para tentar variedade
     for (const playlist of shuffleArray(playlists)) {
       const tracksRes = await axios.get(
         `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`,
@@ -38,7 +30,7 @@ router.get('/random', async (req, res) => {
 
       const tracks = tracksRes.data.items || [];
 
-      // Filtra os álbuns únicos das tracks válidas
+      // Filtra apenas álbuns válidos (não singles, não compilações, etc.)
       const albuns = tracks
         .map(item => item.track?.album)
         .filter(album =>
@@ -50,6 +42,7 @@ router.get('/random', async (req, res) => {
           album.external_urls?.spotify
         );
 
+      // Remover álbuns duplicados por nome
       const albunsUnicos = [];
       const nomesVistos = new Set();
 
@@ -62,18 +55,16 @@ router.get('/random', async (req, res) => {
 
       if (albunsUnicos.length > 0) {
         const albumEscolhido = albunsUnicos[Math.floor(Math.random() * albunsUnicos.length)];
-
-        // Garante ano numérico
-        const ano = parseInt(albumEscolhido.release_date.slice(0,4), 10) || 'Desconhecido';
+        const ano = parseInt(albumEscolhido.release_date.slice(0, 4), 10) || 'Desconhecido';
 
         const albumData = {
           nome: albumEscolhido.name,
           artista: albumEscolhido.artists.map(a => a.name).join(', '),
           imagem: albumEscolhido.images[0]?.url || '',
           ano: ano,
-          genero: genero,
-          duracao: albumEscolhido.total_tracks || 'Desconhecido', // número de faixas
-          descricao: `Álbum de ${genero}, lançado por ${albumEscolhido.artists[0].name}.`,
+          genero: 'Desconhecido',
+          duracao: albumEscolhido.total_tracks || 'Desconhecido',
+          descricao: `Álbum lançado por ${albumEscolhido.artists[0].name}.`,
           spotifyUrl: albumEscolhido.external_urls.spotify,
         };
 

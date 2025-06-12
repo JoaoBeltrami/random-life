@@ -39,37 +39,57 @@ export default function Logo() {
 
   return (
     <div
-      className="relative flex items-center justify-center flex-col cursor-pointer select-none"
+      className="relative flex flex-col items-center justify-center cursor-pointer select-none"
       onClick={toggleBubble}
       onMouseEnter={showOnHover}
       onMouseLeave={hideOnLeave}
+      aria-label="Logo com easter egg"
     >
-      {/* Ícone e título */}
-      <div className="flex items-center gap-4">
-        <motion.div
-          animate={hovering ? { rotate: 360 } : { rotate: 0 }}
-          transition={{
-            repeat: hovering ? Infinity : 0,
-            duration: 2,
-            ease: "linear",
-          }}
-        >
-          <Dice5 className="w-16 h-16 md:w-24 md:h-24 text-white drop-shadow" />
-        </motion.div>
+      <AnimatePresence mode="wait">
+        {!easterEggActive && (
+          <motion.div
+            key="normal-logo"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-4"
+          >
+            <motion.div
+              animate={hovering ? { rotate: 360 } : { rotate: 0 }}
+              transition={{
+                repeat: hovering ? Infinity : 0,
+                duration: 2,
+                ease: "linear",
+              }}
+            >
+              <Dice5 className="w-16 h-16 md:w-24 md:h-24 text-white drop-shadow" />
+            </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-6xl md:text-8xl font-extrabold text-white tracking-widest drop-shadow-xl"
-        >
-          {easterEggActive ? "Mychelly ❤️" : "Life Randomizer"}
-        </motion.h1>
-      </div>
+            <h1 className="text-6xl md:text-8xl font-extrabold text-white tracking-widest drop-shadow-xl whitespace-nowrap">
+              Life Randomizer
+            </h1>
+          </motion.div>
+        )}
+
+        {easterEggActive && (
+          <motion.h1
+            key="easter-egg"
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-7xl md:text-9xl font-extrabold text-pink-500 drop-shadow-xl flex items-center justify-center select-none whitespace-nowrap"
+            aria-label="Easter egg ativado: Mychelly coração"
+          >
+            Mychelly <span role="img" aria-label="coração">❤️</span>
+          </motion.h1>
+        )}
+      </AnimatePresence>
 
       {/* Balão da frase */}
       <AnimatePresence>
-        {showBubble && (
+        {showBubble && !easterEggActive && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
