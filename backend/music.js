@@ -4,14 +4,18 @@ const getSpotifyToken = require('./spotifyAuth');
 
 const router = express.Router();
 
-const MAX_ATTEMPTS = 5;
+// Artistas pré-definidos por modo
+const ARTISTES_DARK = [
+  'Deftones', 'Iron Maiden', 'Slipknot', 'System of a Down', 'Rammstein',
+  'Linkin Park', 'Black Sabbath', 'Avenged Sevenfold', 'Ghost', 'Tool'
+];
 
-const GENEROS_DARK = ['metal', 'rock', 'punk', 'hard'];
-const GENEROS_LIGHT = ['pop', 'rap', 'hip hop'];
-const GENEROS_INDESEJADOS = ['sertanejo', 'pagode'];
+const ARTISTES_LIGHT = [
+  'Ariana Grande', 'The1975', 'Billie Eilish', 'Miley Cyrus', 'Travis Scott',
+  'Post Malone', 'Dua Lipa', 'Taylor Swift', 'Justin Bieber', 'The Weeknd'
+];
 
-const artistGenresCache = new Map();
-
+// Função para embaralhar array
 function shuffleArray(array) {
   const a = [...array];
   for (let i = a.length - 1; i > 0; i--) {
@@ -21,92 +25,53 @@ function shuffleArray(array) {
   return a;
 }
 
-async function getArtistGenres(artistId, token) {
-  if (artistGenresCache.has(artistId)) {
-    return artistGenresCache.get(artistId);
-  }
-  try {
-    const res = await axios.get(`https://api.spotify.com/v1/artists/${artistId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const genres = res.data?.genres || [];
-    artistGenresCache.set(artistId, genres);
-    return genres;
-  } catch (error) {
-    console.warn(`Falha ao obter gêneros do artista ${artistId}: ${error.message}`);
-    artistGenresCache.set(artistId, []);
-    return [];
-  }
-}
-
-function hasAllowedGenre(genres, allowed) {
-  return genres.some(g => allowed.some(a => g.includes(a)));
-}
-
-function hasDisallowedGenre(genres) {
-  return genres.some(g => GENEROS_INDESEJADOS.some(b => g.includes(b)));
-}
-
 router.get('/random', async (req, res) => {
   try {
     const token = await getSpotifyToken();
     if (!token) throw new Error('Token Spotify ausente ou inválido');
 
     const isDark = req.query.dark === 'true';
-    const allowedGenres = isDark ? GENEROS_DARK : GENEROS_LIGHT;
+    const artistList = isDark ? ARTISTES_DARK : ARTISTES_LIGHT;
+    const shuffledArtists = shuffleArray(artistList);
 
-    let attempt = 0;
+    for (const artistName of shuffledArtists) {
+      // Buscar ID do artista
+      const searchRes = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const artist = searchRes.data?.artists?.items?.[0];
+      if (!artist || !artist.id) continue;
 
-    while (attempt < MAX_ATTEMPTS) {
-      attempt++;
+      // Buscar top músicas desse artista
+      const tracksRes = await axios.get(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks?market=BR`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const tracks = tracksRes.data?.tracks || [];
 
-      const playlistsRes = await axios.get(
-        `https://api.spotify.com/v1/search?q=genre&type=playlist&limit=10&market=BR`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const validTracks = tracks.filter(track =>
+        track.name &&
+        track.album?.images?.length &&
+        track.external_urls?.spotify &&
+        track.artists?.length
       );
 
-      const playlists = playlistsRes.data?.playlists?.items || [];
-      if (!playlists.length) continue;
+      if (validTracks.length === 0) continue;
 
-      for (const playlist of shuffleArray(playlists)) {
-        const tracksRes = await axios.get(
-          `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100&market=BR`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+      const chosenTrack = shuffleArray(validTracks)[0];
+      const musicData = {
+        nome: chosenTrack.name,
+        artista: chosenTrack.artists.map(a => a.name).join(', '),
+        imagem: chosenTrack.album.images[0].url,
+        spotifyUrl: chosenTrack.external_urls.spotify,
+        album: chosenTrack.album.name,
+        previewUrl: chosenTrack.preview_url
+      };
 
-        const tracks = tracksRes.data?.items || [];
-        artistGenresCache.clear();
-
-        for (const item of shuffleArray(tracks)) {
-          const track = item?.track;
-          if (!track || !track.artists?.length) continue;
-
-          let allGenres = [];
-          for (const artist of track.artists) {
-            const genres = await getArtistGenres(artist.id, token);
-            allGenres = allGenres.concat(genres);
-          }
-
-          allGenres = [...new Set(allGenres.map(g => g.toLowerCase()))];
-
-          if (hasDisallowedGenre(allGenres)) continue;
-          if (!hasAllowedGenre(allGenres, allowedGenres)) continue;
-
-          const trackData = {
-            nome: track.name,
-            artista: track.artists.map(a => a.name).join(', '),
-            imagem: track.album.images[0]?.url || '',
-            spotifyUrl: track.external_urls.spotify || '',
-            previewUrl: track.preview_url || null
-          };
-
-          console.log(`Música retornada: ${trackData.nome} - ${trackData.artista}`);
-          return res.json(trackData);
-        }
-      }
+      console.log(`Música retornada: ${musicData.nome} - ${musicData.artista}`);
+      return res.json(musicData);
     }
 
-    res.status(404).json({ error: 'Nenhuma música válida encontrada após várias tentativas' });
+    res.status(404).json({ error: 'Nenhuma música encontrada após várias tentativas.' });
   } catch (error) {
     console.error('Erro ao buscar música no Spotify:', error.message);
     res.status(500).json({ error: 'Erro ao buscar música no Spotify' });
