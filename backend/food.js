@@ -8,16 +8,51 @@ const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
 // Lista de delivery (nomes simples)
 const deliveryOptions = [
-  "Pizza", "Hambúrguer", "Sushi", "Lasanha", "Churrasco",
-  "Comida Mexicana", "Salada", "Sanduíche", "Frango Frito", "Tapioca"
+  "Pizza",
+  "Hambúrguer",
+  "Sushi",
+  "Lasanha",
+  "Churrasco",
+  "Comida Mexicana",
+  "Salada",
+  "Sanduíche",
+  "Frango Frito",
+  "Tapioca",
+  "Pastel",
+  "Crepe",
+  "Açaí",
+  "Risoto",
+  "Moqueca",
+  "Coxinha",
+  "Feijoada",
+  "Empanada",
+  "Yakisoba",
+  "Burrito",
+  "Falafel",
+  "Pho",
+  "Kibe",
+  "Panqueca",
+  "Hot Dog",
+  "Batata Recheada",
+  "Temaki"
 ];
 
-// Rota que retorna só nomes (mantida)
+// Rota que retorna só nomes (mantida para simplicidade)
 router.get('/delivery', (req, res) => {
   res.json(deliveryOptions);
 });
 
-// Função para buscar imagem no Unsplash pelo termo (query)
+// Função utilitária para embaralhar array (Fisher-Yates)
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Busca imagem no Unsplash pelo termo
 async function fetchUnsplashImage(query) {
   try {
     const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`;
@@ -25,10 +60,8 @@ async function fetchUnsplashImage(query) {
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      // Pega a URL da imagem regular (ou a que preferir)
       return data.results[0].urls.regular;
     } else {
-      // Retorna uma imagem genérica ou null se não achar
       return null;
     }
   } catch (error) {
@@ -37,19 +70,21 @@ async function fetchUnsplashImage(query) {
   }
 }
 
-// Rota que retorna lista com nome + imagem real para delivery, buscando no Unsplash
+// Rota que retorna lista com nome + imagem (embaralhada)
 router.get('/delivery/full', async (req, res) => {
   try {
-    // Mapear os itens da lista para objetos com imagem do Unsplash
+    const shuffledOptions = shuffleArray(deliveryOptions);
+
     const deliveryFull = await Promise.all(
-      deliveryOptions.map(async (item) => {
-        const image = await fetchUnsplashImage(item + " food"); // adiciona "food" para melhorar resultado
+      shuffledOptions.map(async (item) => {
+        const image = await fetchUnsplashImage(item + " food");
         return {
           name: item,
-          image: image || 'https://via.placeholder.com/800x600?text=No+Image', // placeholder se não achar
+          image: image || 'https://via.placeholder.com/800x600?text=No+Image',
         };
       })
     );
+
     res.json(deliveryFull);
   } catch (error) {
     console.error('Erro ao montar lista delivery/full:', error);
@@ -57,7 +92,7 @@ router.get('/delivery/full', async (req, res) => {
   }
 });
 
-// Endpoint que retorna uma receita aleatória do TheMealDB (mantido)
+// Rota de receita aleatória (mantida)
 router.get('/recipe', async (req, res) => {
   try {
     const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
@@ -83,6 +118,7 @@ router.get('/recipe', async (req, res) => {
   }
 });
 
+// Extrai ingredientes e medidas
 function getIngredients(meal) {
   const ingredients = [];
   for (let i = 1; i <= 20; i++) {
