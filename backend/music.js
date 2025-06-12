@@ -23,11 +23,10 @@ router.get('/random', async (req, res) => {
 
       const playlists = playlistsRes.data?.playlists?.items || [];
       if (playlists.length === 0) {
-        console.warn('⚠️ Nenhuma playlist encontrada com "album"');
         return res.status(404).json({ error: 'Nenhuma playlist encontrada' });
       }
 
-      // Embaralha playlists para tentar variedade
+      // Embaralha playlists para variar resultados
       for (const playlist of shuffleArray(playlists)) {
         const tracksRes = await axios.get(
           `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`,
@@ -36,19 +35,20 @@ router.get('/random', async (req, res) => {
 
         const tracks = tracksRes.data.items || [];
 
-        // Filtra apenas álbuns válidos (não singles, não compilações, etc.)
+        // Filtra álbuns válidos: album_type "album", com imagem, nome, artista e url
         const albuns = tracks
           .map(item => item.track?.album)
           .filter(album =>
             album &&
             album.album_type === 'album' &&
-            album.release_date &&
+            album.name &&
             album.artists?.length &&
             album.images?.length &&
-            album.external_urls?.spotify
+            album.external_urls?.spotify &&
+            album.total_tracks
           );
 
-        // Remove álbuns duplicados por nome
+        // Remove duplicados pelo nome do álbum
         const albunsUnicos = [];
         const nomesVistos = new Set();
 
@@ -61,34 +61,24 @@ router.get('/random', async (req, res) => {
 
         if (albunsUnicos.length > 0) {
           const albumEscolhido = albunsUnicos[Math.floor(Math.random() * albunsUnicos.length)];
-          const ano = parseInt(albumEscolhido.release_date.slice(0, 4), 10) || 'Desconhecido';
 
           const albumData = {
             nome: albumEscolhido.name,
             artista: albumEscolhido.artists.map(a => a.name).join(', '),
-            imagem: albumEscolhido.images[0]?.url || '',
-            ano: ano,
-            genero: 'Desconhecido',
-            duracao: albumEscolhido.total_tracks || 'Desconhecido',
-            descricao: `Álbum lançado por ${albumEscolhido.artists[0].name}.`,
+            imagem: albumEscolhido.images[0].url,
+            numeroFaixas: albumEscolhido.total_tracks,
             spotifyUrl: albumEscolhido.external_urls.spotify,
           };
 
           return res.json(albumData);
         }
       }
-
-      console.warn(`Tentativa ${tentativa} - Nenhum álbum válido encontrado, tentando novamente...`);
     }
 
-    console.warn('⚠️ Nenhum álbum válido encontrado após várias tentativas');
     res.status(404).json({ error: 'Nenhum álbum válido encontrado após várias tentativas' });
 
   } catch (error) {
-    console.error('❌ Erro ao buscar álbum no Spotify:', error.message);
-    if (error.response?.data) {
-      console.error('Detalhe:', error.response.data);
-    }
+    console.error('Erro ao buscar álbum no Spotify:', error.message);
     res.status(500).json({ error: 'Erro ao buscar álbum no Spotify' });
   }
 });

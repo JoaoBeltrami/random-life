@@ -1,57 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-const deliveryPopular = [
-  {
-    name: "Pizza Margherita",
-    image:
-      "https://images.unsplash.com/photo-1601924638867-3c7a1a4d1a1e?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Sushi",
-    image:
-      "https://images.unsplash.com/photo-1562158070-6a3e6c5e2bc0?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Hambúrguer Clássico",
-    image:
-      "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Açaí na Tigela",
-    image:
-      "https://images.unsplash.com/photo-1588008361856-1e8264428bfb?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Pastel de Feira",
-    image:
-      "https://images.unsplash.com/photo-1562967916-eb82221dfb32?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Crepe Suíço",
-    image:
-      "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Crepe Francês",
-    image:
-      "https://images.unsplash.com/photo-1505253210343-1b97a9aef7c3?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Ramen",
-    image:
-      "https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=800&q=80",
-  },
-];
-
 export default function Comida() {
   const [view, setView] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deliveryItems, setDeliveryItems] = useState([]);
   const [deliveryIndex, setDeliveryIndex] = useState(0);
   const navigate = useNavigate();
 
@@ -68,16 +26,31 @@ export default function Comida() {
     setLoading(false);
   }
 
-  function startDelivery() {
+  async function startDelivery() {
+    setLoading(true);
     setView("delivery");
     setDeliveryIndex(0);
-    setData(deliveryPopular[0]);
+    try {
+      const res = await fetch(`${BASE_URL}/api/food/delivery/full`);
+      const json = await res.json();
+      setDeliveryItems(json);
+      if (json.length > 0) {
+        setData(json[0]);
+      } else {
+        setData(null);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar delivery:", err);
+      setData(null);
+    }
+    setLoading(false);
   }
 
   function nextDelivery() {
+    if (deliveryItems.length === 0) return;
     setDeliveryIndex((prev) => {
-      const nextIndex = (prev + 1) % deliveryPopular.length;
-      setData(deliveryPopular[nextIndex]);
+      const nextIndex = (prev + 1) % deliveryItems.length;
+      setData(deliveryItems[nextIndex]);
       return nextIndex;
     });
   }
@@ -144,6 +117,7 @@ export default function Comida() {
               e.stopPropagation(); // evitar troca ao clicar no botão
               setView(null);
               setData(null);
+              setDeliveryItems([]);
             }}
             className="bg-red-900 hover:bg-red-800 px-6 py-2 rounded-lg transition-colors"
           >
