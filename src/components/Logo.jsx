@@ -81,8 +81,34 @@ export default function Logo() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-7xl md:text-9xl font-extrabold text-pink-500 drop-shadow-xl flex items-center justify-center select-none whitespace-nowrap"
             aria-label="Easter egg ativado: Mychelly coração"
+            style={{
+              WebkitTextStroke: "1.5px black",
+              textStroke: "1.5px black",
+            }}
           >
-            Mychelly <span role="img" aria-label="coração">❤️</span>
+            Mychelly{" "}
+            <motion.span
+              role="img"
+              aria-label="coração pulsando"
+              className="ml-2"
+              animate={{
+                scale: [1, 1.3, 1],
+                rotate: [0, 10, -10, 0],
+                boxShadow: [
+                  "0 0 0px rgba(255,0,0,0)",
+                  "0 0 8px rgba(255,0,0,0.7)",
+                  "0 0 0px rgba(255,0,0,0)",
+                ],
+              }}
+              transition={{
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 2,
+                ease: "easeInOut",
+              }}
+            >
+              ❤️
+            </motion.span>
           </motion.h1>
         )}
       </AnimatePresence>
