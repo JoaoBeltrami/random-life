@@ -73,24 +73,43 @@ export default function Logo() {
         )}
 
         {easterEggActive && (
-          <motion.h1
+          <motion.div
             key="easter-egg"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-7xl md:text-9xl font-extrabold text-pink-500 drop-shadow-xl flex items-center justify-center select-none whitespace-nowrap"
+            className="flex items-center gap-4 select-none whitespace-nowrap drop-shadow-xl"
             aria-label="Easter egg ativado: Mychelly coração"
-            style={{
-              WebkitTextStroke: "1.5px black",
-              textStroke: "1.5px black",
-            }}
           >
-            Mychelly{" "}
+            {/* Dado girando */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{
+                repeat: Infinity,
+                duration: 2,
+                ease: "linear",
+              }}
+            >
+              <Dice5 className="w-16 h-16 md:w-24 md:h-24 text-white" />
+            </motion.div>
+
+            {/* Texto Mychelly com outline preto */}
+            <motion.h1
+              className="text-7xl md:text-9xl font-extrabold text-white"
+              style={{
+                WebkitTextStroke: "1.5px black",
+                textStroke: "1.5px black",
+              }}
+            >
+              Mychelly
+            </motion.h1>
+
+            {/* Coração pulsando e balançando */}
             <motion.span
               role="img"
               aria-label="coração pulsando"
-              className="ml-2"
+              className="text-7xl md:text-9xl"
               animate={{
                 scale: [1, 1.3, 1],
                 rotate: [0, 10, -10, 0],
@@ -109,7 +128,7 @@ export default function Logo() {
             >
               ❤️
             </motion.span>
-          </motion.h1>
+          </motion.div>
         )}
       </AnimatePresence>
 
