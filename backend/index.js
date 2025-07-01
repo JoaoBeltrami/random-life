@@ -3,10 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-const moviesRouter = require('./movies');
-const musicRouter = require('./music');
-const booksRouter = require('./books');
-const foodRouter = require('./food'); // <-- Novo
+// Caminhos corrigidos com base na nova estrutura
+const moviesRouter = require('./src/routes/movies');
+const musicRouter = require('./src/routes/music');
+const booksRouter = require('./src/routes/books');
+const foodRouter = require('./src/routes/food');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -17,9 +18,10 @@ app.use(express.json());
 app.use('/api/movies', moviesRouter);
 app.use('/api/music', musicRouter);
 app.use('/api/books', booksRouter);
-app.use('/api/food', foodRouter); // <-- Novo
+app.use('/api/food', foodRouter);
 
-const distPath = path.join(__dirname, '..', 'dist');
+// Serve arquivos estáticos do frontend
+const distPath = path.join(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(distPath));
 
 app.get('*', (req, res) => {
