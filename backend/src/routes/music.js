@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const getSpotifyToken = require('./spotifyAuth');
+const getSpotifyToken = require('../services/spotifyAuth');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ function shuffleArray(array) {
   const a = [...array];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [a[i], a[j]] = [a[j], a[i]]; // corrigido para trocar corretamente
   }
   return a;
 }

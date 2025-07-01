@@ -9,31 +9,50 @@ export default function Filme() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    getRandomMovie();
-  }, []);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  async function getRandomMovie() {
-    try {
-      setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/movies/random`);
-      if (!response.ok) {
-        throw new Error("Erro ao buscar filme do backend");
+  useEffect(() => {
+    async function getRandomMovie() {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/api/movies/random`);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar filme do backend");
+        }
+        const movieData = await response.json();
+        console.log("Filme recebido:", movieData);
+        setMovie(movieData);
+      } catch (error) {
+        console.error("Erro ao buscar filme:", error);
+        setMovie(null);
+      } finally {
+        setLoading(false);
       }
-      const movie = await response.json();
-      console.log("Filme recebido:", movie);
-      setMovie(movie);
-    } catch (error) {
-      console.error("Erro ao buscar filme:", error);
-      setMovie(null);
-    } finally {
-      setLoading(false);
     }
-  }
+
+    getRandomMovie();
+  }, [API_BASE_URL]);
 
   const handleRetry = () => {
     setClickCount((prev) => prev + 1);
-    getRandomMovie();
+    // Para evitar duplicação, pode repetir a função aqui:
+    (async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/api/movies/random`);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar filme do backend");
+        }
+        const movieData = await response.json();
+        console.log("Filme recebido:", movieData);
+        setMovie(movieData);
+      } catch (error) {
+        console.error("Erro ao buscar filme:", error);
+        setMovie(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   const retryMessage = clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
