@@ -42,10 +42,6 @@ export default function Filme() {
 
   const retryMessage = clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
 
-  const poster = movie?.poster_path
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-    : "/default-movie.jpg";
-
   return (
     <div
       className="relative flex items-center justify-center min-h-screen px-4"
@@ -76,20 +72,24 @@ export default function Filme() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="flex flex-col md:flex-row bg-zinc-900/90 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-6xl w-full border border-zinc-700"
           >
-            {/* Imagem */}
-            <motion.img
-              src={poster}
-              alt={movie.title}
-              className="w-full md:w-1/2 object-cover brightness-95"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-            />
+            {/* Imagem, só mostra se tiver poster_path */}
+            {movie.poster_path && (
+              <motion.img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full md:w-1/2 object-cover brightness-95"
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -50, opacity: 0 }}
+                transition={{ duration: 0.4 }}
+              />
+            )}
 
             {/* Texto */}
             <motion.div
-              className="p-8 md:w-1/2 flex flex-col justify-between gap-4 text-white"
+              className={`p-8 md:w-1/2 flex flex-col justify-between gap-4 text-white ${
+                !movie.poster_path ? "w-full" : ""
+              }`}
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 50, opacity: 0 }}
