@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -11,48 +11,33 @@ export default function Filme() {
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  useEffect(() => {
-    async function getRandomMovie() {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/movies/random`);
-        if (!response.ok) {
-          throw new Error("Erro ao buscar filme do backend");
-        }
-        const movieData = await response.json();
-        console.log("Filme recebido:", movieData);
-        setMovie(movieData);
-      } catch (error) {
-        console.error("Erro ao buscar filme:", error);
-        setMovie(null);
-      } finally {
-        setLoading(false);
+  const getRandomMovie = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/movies/random`);
+      if (!response.ok) {
+        throw new Error("Erro ao buscar filme do backend");
       }
+      const movieData = await response.json();
+      console.log("Filme recebido:", movieData);
+      setMovie(movieData);
+    } catch (error) {
+      console.error("Erro ao buscar filme:", error);
+      setMovie(null);
+    } finally {
+      setLoading(false);
     }
-
-    getRandomMovie();
   }, [API_BASE_URL]);
+
+  useEffect(() => {
+    if (API_BASE_URL) {
+      getRandomMovie();
+    }
+  }, [getRandomMovie, API_BASE_URL]);
 
   const handleRetry = () => {
     setClickCount((prev) => prev + 1);
-    // Para evitar duplicação, pode repetir a função aqui:
-    (async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/movies/random`);
-        if (!response.ok) {
-          throw new Error("Erro ao buscar filme do backend");
-        }
-        const movieData = await response.json();
-        console.log("Filme recebido:", movieData);
-        setMovie(movieData);
-      } catch (error) {
-        console.error("Erro ao buscar filme:", error);
-        setMovie(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    getRandomMovie();
   };
 
   const retryMessage = clickCount >= 2 ? "Tá difícil decidir hoje, hein? 😅" : null;
@@ -118,8 +103,7 @@ export default function Filme() {
                   <span className="text-blue-400 font-semibold">
                     ⭐ {movie.vote_average?.toFixed(1)}
                   </span>{" "}
-                  • 🎬 {movie.release_date?.split("-")[0]} • 🕒{" "}
-                  {movie.runtime} min
+                  • 🎬 {movie.release_date?.split("-")[0]} • 🕒 {movie.runtime} min
                 </p>
                 <p className="text-md text-gray-300 font-semibold italic mb-4">
                   {movie.genres?.map((g) => g.name).join(", ")}
